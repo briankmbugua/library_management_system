@@ -8,12 +8,32 @@
 </head>
 
 <body>
+    <div>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div>
+            {% for message in messages %}
+            <p>{{message[0] }} {{ message[1] }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+    </div>
     <p>Add user <a href="{{ url_for('addUser')}}">Add User</a></p>
-    {% for i in user %}
-    (#{{ i }})
-    {% endfor %}
+    {#<p>Update user <a href="{{ url_for('updateUser')}}">Update User</a></p>
+    <p>Delete user <a href="{{ url_for('deleteUser')}}">Delete user</a></p>#}
     <p>Add subject <a href="{{ url_for('addSubject')}}">Add Subject</a></p>
-    (#{{subject}})
+    <div>
+        <h4>All Users</h4>
+        <a href="{{ url_for('users')}}">View all users</a>
+    </div>
+    <div>
+        <h4>All Subjects</h4>
+        <a href="{{ url_for('subjects')}}">View all Subjects</a>
+    </div>
+    {#
+    <p>update subject <a href="{{ url_for('updateSubject')}}">Add Subject</a></p>
+    <p>delete subject <a href="{{ url_for('deleteSubject')}}">Add Subject</a></p>#}
 </body>
 
 </html>

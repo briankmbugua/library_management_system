@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Subjects</title>
+</head>
+
+<body>
+    <a href="{{ url_for('index')}}">Return home</a>
+    {% for subject in subjects %}
+    <div>
+        <p>{{ subject.subName }}</p>
+    </div>
+    <a href="{{ url_for('deleteSubject', id=subject.subID)}}">Delete Subject</a>
+    <a href="{{ url_for('updateSubject', id=subject.subID)}}">Update Subject</a>
+    {% endfor %}
+</body>
+
+</html>
