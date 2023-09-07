@@ -14,7 +14,7 @@ migrate = Migrate(app, db)
 # with app.app_context():
 #     # db.drop_all()
 #     db.create_all()
-#     migrate.init()
+#     # migrate.init()
 
 
 @app.route("/")
@@ -118,6 +118,67 @@ def deleteSubject(id):
     db.session.delete(subject)
     db.session.commit()
     return redirect(url_for('index'))
+
+
+@app.route("/addBook", methods=("POST", "GET"))
+def addBook():
+    if request.method == "POST":
+        accNumber = request.form['accNumber']
+        booktitle = request.form['booktitle']
+        authorname = request.form['authorname']
+        publishername = request.form['publishername']
+        pages = request.form['pages']
+        price = request.form['price']
+        status = request.form['status']
+        book = bookMaster(accNumber=accNumber, bookTitle=booktitle, authorName=authorname,
+                          PublisherName=publishername, pages=pages, price=price, status=status)
+        db.session.add(book)
+        db.session.commit()
+        if book.accNumber:
+            message = Markup("Book added successfully!")
+            flash(message, "success")
+        else:
+            flash("Failed to add Book. Please try again")
+
+        return render_template("index.html")
+    elif request.method == "GET":
+        return render_template("addBook.html")
+
+
+@app.route("/deleteBook/<int:accNumber>")
+def deleteBook(accNumber):
+    book = bookMaster.query.get_or_404(accNumber)
+    db.session.delete(book)
+    db.session.commit()
+    return redirect(url_for('index'))
+
+
+@app.route("/updateBook/<int:accNumber>", methods=['POST', 'GET'])
+def updateBook(accNumber):
+    book = bookMaster.query.get_or_404(accNumber)
+
+    if request.method == 'POST':
+        book.accNumber = request.form['accNumber']
+        book.bookTitle = request.form['booktitle']
+        book.authorName = request.form['authorname']
+        book.PublisherName = request.form['publishername']
+        book.pages = request.form['pages']
+        book.price = request.form['price']
+        book.status = request.form['status']
+        try:
+            db.session.commit()
+            return redirect(url_for('index'))
+        except:
+            return 'There was an issue updating the book'
+    else:
+        return render_template('updateBook.html', book=book)
+
+
+@app.route("/books")
+def books():
+    books = bookMaster.query.all()
+    print(books)
+    return render_template("allBooks.html", books=books)
 
 
 if __name__ == "__main__":
