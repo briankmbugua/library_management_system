@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All users</title>
+</head>
+
+<body>
+    <div><a href="{{ url_for('index')}}">Return home</a></div>
+    {% for book in books %}
+    <div>
+        <p>{{ book.accNumber }}</p>
+        <p>{{book.bookTitle}}</p>
+        <p>{{ book.authorName}}</p>
+        <p>{{ book.PublisherName}}</p>
+        <p>{{ book.pages}}</p>
+        <p>{{ book.price}}</p>
+        <p>{{ book.status}}</p>
+        <a href="{{ url_for('deleteBook', accNumber=book.accNumber)}}">DeleteBOOK</a>
+        <a href="{{ url_for('updateBook', accNumber=book.accNumber)}}">UpdateBOOK</a>
+    </div>
+    {% endfor %}
+</body>
+
+</html>
