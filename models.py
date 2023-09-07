@@ -23,7 +23,7 @@ class bookMaster(db.Model):
     accNumber = db.Column(db.String(50), primary_key=True)
     bookTitle = db.Column(db.String(50), nullable=False)
     SubID = db.Column(db.Integer, db.ForeignKey(
-        "Subjects.subID"), nullable=False)
+        "Subjects.subID"), nullable=True)
     authorName = db.Column(db.String(50), nullable=False)
     PublisherName = db.Column(db.String(50), nullable=False)
     pages = db.Column(db.Integer, nullable=False)
