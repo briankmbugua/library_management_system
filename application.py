@@ -2,14 +2,15 @@ from flask import Flask, render_template, request, url_for, session, flash, redi
 from markupsafe import Markup
 from models import *
 from datetime import date, timedelta
-from flask_migrate import Migrate
+# from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:password@localhost:3306/libdb"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.secret_key = b'hkahs3720/'
 db.init_app(app)
-migrate = Migrate(app, db)
+# migrate = Migrate(app, db)
 
 # with app.app_context():
 #     # db.drop_all()
@@ -135,13 +136,14 @@ def addBook():
         db.session.add(book)
         db.session.commit()
         if book.accNumber:
-            message = Markup("Book added successfully!")
+            message = "Book added successfully!"
             flash(message, "success")
         else:
             flash("Failed to add Book. Please try again")
 
         return render_template("index.html")
     elif request.method == "GET":
+        # Subjects = Subjects.query.all()  # get all the subjects to populate the dropdwon
         return render_template("addBook.html")
 
 
@@ -156,6 +158,7 @@ def deleteBook(accNumber):
 @app.route("/updateBook/<int:accNumber>", methods=['POST', 'GET'])
 def updateBook(accNumber):
     book = bookMaster.query.get_or_404(accNumber)
+    subjects = Subjects.query.all()
 
     if request.method == 'POST':
         book.accNumber = request.form['accNumber']
@@ -165,13 +168,18 @@ def updateBook(accNumber):
         book.pages = request.form['pages']
         book.price = request.form['price']
         book.status = request.form['status']
+        subname = request.form['subname']
         try:
+            subject = Subjects.query.get_or_404(subname)
+            book.SubID = subject.subID
             db.session.commit()
             return redirect(url_for('index'))
         except:
             return 'There was an issue updating the book'
     else:
-        return render_template('updateBook.html', book=book)
+        # get all subjects to use in populating the select tag
+        data = [subjects, book]
+        return render_template('updateBook.html', data=data)
 
 
 @app.route("/books")
@@ -179,6 +187,26 @@ def books():
     books = bookMaster.query.all()
     print(books)
     return render_template("allBooks.html", books=books)
+
+
+# def get_or_create(session, model, **kwargs):
+#     instance = session.query(model).filter_by(**kwargs)
+#     if instance is None:
+#         instance = model(**kwargs)
+#         session.add(instance)
+#         session.commit()
+#     return instance
+
+
+# @app.route('/setBookSubject/<int:accNumber>')
+# def setBookSubject(accNumber):
+#     book = bookMaster.query.get_or_404(accNumber)
+#     subName = request.form['subName']
+#     subject = get_or_create(db.session, Subjects, subName=subName)
+#     book.SubID = subject.subID
+#     db.session.add(book)
+#     db.session.commit()
+#     return redirect(url_for('books'))
 
 
 if __name__ == "__main__":
