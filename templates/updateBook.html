@@ -4,27 +4,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Update User</title>
+    <title>Update book</title>
 </head>
 
 <body>
     <form action="" method="post">
         <label for="accNumber">Account Number</label>
-        <input type="number" placeholder="Enter your account number" name="accNumber" value="{{book.accNumber}}">
+        <input type="number" placeholder="Enter your account number" name="accNumber" value="{{data[1].accNumber}}">
         <label for="booktitle">BookTitle</label>
-        <input type="text" placeholder="enter bookTitle" name="booktitle" value="{{book.bookTitle}}">
+        <input type="text" placeholder="enter bookTitle" name="booktitle" value="{{data[1].bookTitle}}">
         <label for="authorname">authorname</label>
-        <input type="text" placeholder="enter author name" name="authorname" value="{{book.authorName}}">
+        <input type="text" placeholder="enter author name" name="authorname" value="{{data[1].authorName}}">
         <label for="publishername">publishername</label>
-        <input type="text" placeholder="enter publisher name" name="publishername" value="{{book.PublisherName}}">
+        <input type="text" placeholder="enter publisher name" name="publishername" value="{{data[1].PublisherName}}">
         <label for="pages">pages</label>
-        <input type="number" placeholder="enter number of pages" name="pages" value="{{book.pages}}">
+        <input type="number" placeholder="enter number of pages" name="pages" value="{{data[1].pages}}">
         <label for="price">price</label>
-        <input type="number" placeholder="enter the price of the book" name="price" value="{{book.price}}">
-        <label for="status">pages</label>
-        <input type="text" placeholder="enter the status of the book" name="status" value="{{book.status}}">
-        <label for="status">pages</label>
-        <input type="text" placeholder="enter the status of the book" name="status" value="{{book.status}}">
+        <input type="number" placeholder="enter the price of the book" name="price" value="{{data[1].price}}">
+        <label for="status">status</label>
+        <input type="text" placeholder="enter the status of the book" name="status" value="{{data[1].status}}">
+        <label for="subject">Enter subject</label>
+        <select>
+            {%for subject in data[0] %}
+            <option name="subname" placeholder="select subject">{{subject.subName}}</option>
+            {% endfor %}
+        </select>
         <button>Update</button>
     </form>
 </body>
