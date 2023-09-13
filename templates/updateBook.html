@@ -24,9 +24,9 @@
         <label for="status">status</label>
         <input type="text" placeholder="enter the status of the book" name="status" value="{{data[1].status}}">
         <label for="subject">Enter subject</label>
-        <select>
+        <select name="subname">
             {%for subject in data[0] %}
-            <option name="subname" placeholder="select subject">{{subject.subName}}</option>
+            <option placeholder="select subject">{{subject.subName}}</option>
             {% endfor %}
         </select>
         <button>Update</button>

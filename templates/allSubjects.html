@@ -15,6 +15,7 @@
     </div>
     <a href="{{ url_for('deleteSubject', id=subject.subID)}}">Delete Subject</a>
     <a href="{{ url_for('updateSubject', id=subject.subID)}}">Update Subject</a>
+    <a href="{{ url_for('booksBySubject', id=subject.subID)}}">All {{ subject.subName}} Books</a>
     {% endfor %}
 </body>
 
