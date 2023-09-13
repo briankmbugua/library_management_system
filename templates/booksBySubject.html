@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>booksBySubject</title>
+</head>
+
+<body>
+    <div><a href="{{ url_for('index')}}">Return home</a></div>
+    {% for book in books %}
+    <p>{{ book.bookTitle }}</p>
+    {% endfor %}
+</body>
+
+</html>
