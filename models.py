@@ -1,5 +1,5 @@
-from flask_login import LoginManager, UserMixin
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
 db = SQLAlchemy()
 
 
@@ -9,12 +9,12 @@ class Subjects(db.Model):
     subName = db.Column(db.String(50), nullable=False)
 
 
-class usersList(db.Model):
+class usersList(db.Model, UserMixin):
     __tablename__ = "users"
     userID = db.Column(db.Integer, primary_key=True)
     userName = db.Column(db.String(50), nullable=False)
     password = db.Column(db.String(50), nullable=False)
-    userType = db.Column(db.String(50), nullable=False)
+    userType = db.Column(db.String(50), nullable=True)
 
 
 class bookMaster(db.Model):
