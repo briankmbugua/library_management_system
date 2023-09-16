@@ -1,14 +1,21 @@
 from flask import Flask, render_template, request, url_for, flash, redirect
+from flask_login import LoginManager
 from models import *
+from flask_bcrypt import Bcrypt
 from datetime import date, timedelta
 from flask_migrate import Migrate
 
 app = Flask(__name__)
+
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:password@localhost:3306/libdb"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.secret_key = b'hkahs3720/'
+bcrypt = Bcrypt(app)
 db.init_app(app)
+login_manager = LoginManager()
+login_manager.login_view = "login"
+login_manager.init_app(app)
 migrate = Migrate(app, db)
 
 # with app.app_context():
@@ -16,17 +23,47 @@ migrate = Migrate(app, db)
 #     db.create_all()
 #     # migrate.init()
 
+# Create user loader callback that returns a user give the userID
+
+
+@login_manager.user_loader
+def loader_user(userID):
+    return usersList.query.get(userID)
+
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
 
+@app.route("/login", methods=["GET", "POST"])
+# def login():
+#     if request.method == "POST":
+#         username = request.form['username']
+#         password = request.form['password']
+#         user = usersList.query.filter_by(userName=username).first()
+#         if user and bcrypt.check_password_hash(user.password, password):
+#             login_user(user)
+@app.route("/register", methods=("POST", "GET"))
+def register():
+    if request.method == "POST":
+        username = request.form['username']
+        password = bcrypt.generate_password_hash(request.form['password'])
+        user = usersList(userName=username,
+                         password=password)
+        db.session.add(user)
+        db.session.commit()
+        flash("Account created succesfully", "succes")
+        return redirect(url_for("login"))
+    elif request.method == "GET":
+        return render_template("register.html")
+
+
 @app.route("/addUser", methods=("POST", "GET"))
 def addUser():
     if request.method == "POST":
         username = request.form['username']
-        password = request.form['password']
+        password = bcrypt.generate_password_hash(request.form['password'])
         usertype = request.form['userType']
         user = usersList(userName=username,
                          password=password, userType=usertype)
@@ -209,7 +246,6 @@ def booksBySubject(id):
 #     db.session.add(book)
 #     db.session.commit()
 #     return redirect(url_for('books'))
-
 
 if __name__ == "__main__":
     app.run(debug=True)
