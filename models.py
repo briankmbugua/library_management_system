@@ -13,7 +13,7 @@ class usersList(db.Model, UserMixin):
     __tablename__ = "users"
     userID = db.Column(db.Integer, primary_key=True)
     userName = db.Column(db.String(50), nullable=False)
-    password = db.Column(db.String(50), nullable=False)
+    password = db.Column(db.String(256), nullable=False)
     userType = db.Column(db.String(50), nullable=True)
 
 
