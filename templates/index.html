@@ -8,6 +8,11 @@
 </head>
 
 <body>
+    <p><a href="{{ url_for('register')}}">Create anan account</a></p>
+    <p><a href="{{ url_for('login')}}">Login</a></p>
+    {% if current_user.is_authenticated %}
+    <p><a href="{{ url_for('logout')}}">logout</a></p>
+    {% endif %}
     <div>
         {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -19,6 +24,7 @@
         {% endif %}
         {% endwith %}
     </div>
+    {% if current_user.is_authenticated %}
     <p>Add user <a href="{{ url_for('addUser')}}">Add User</a></p>
     <p>Add subject <a href="{{ url_for('addSubject')}}">Add Subject</a></p>
     <p>Add Book <a href="{{ url_for('addBook')}}">Add Book</a></p>
@@ -34,6 +40,7 @@
         <h4>All Books</h4>
         <a href="{{ url_for('books')}}">View all Books</a>
     </div>
+    {% endif %}
 </body>
 
 </html>
