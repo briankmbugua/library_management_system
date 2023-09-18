@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, url_for, flash, redirect
-from flask_login import LoginManager
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from models import *
-from flask_bcrypt import Bcrypt
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import date, timedelta
 from flask_migrate import Migrate
 
@@ -11,7 +11,6 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:password@localhost
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.secret_key = b'hkahs3720/'
-bcrypt = Bcrypt(app)
 db.init_app(app)
 login_manager = LoginManager()
 login_manager.login_view = "login"
@@ -23,9 +22,8 @@ migrate = Migrate(app, db)
 #     db.create_all()
 #     # migrate.init()
 
+
 # Create user loader callback that returns a user give the userID
-
-
 @login_manager.user_loader
 def loader_user(userID):
     return usersList.query.get(userID)
@@ -36,19 +34,34 @@ def index():
     return render_template("index.html")
 
 
+# login route to handle user login
 @app.route("/login", methods=["GET", "POST"])
-# def login():
-#     if request.method == "POST":
-#         username = request.form['username']
-#         password = request.form['password']
-#         user = usersList.query.filter_by(userName=username).first()
-#         if user and bcrypt.check_password_hash(user.password, password):
-#             login_user(user)
+def login():
+    if request.method == "POST":
+        username = request.form['username']
+        password = request.form['password']
+        user = usersList.query.filter_by(userName=username).first()
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            flash("Logged in succesfully", "succes")
+            return redirect(url_for("index"))
+        else:
+            flash("Login failed. Check your username and password")
+    return render_template("login.html")
+
+
+@app.route("/logout")
+@login_required  # Ensure that only authenticated users can log out
+def logout():
+    logout_user()
+    return redirect(url_for("index"))
+
+
 @app.route("/register", methods=("POST", "GET"))
 def register():
     if request.method == "POST":
         username = request.form['username']
-        password = bcrypt.generate_password_hash(request.form['password'])
+        password = generate_password_hash(request.form['password'])
         user = usersList(userName=username,
                          password=password)
         db.session.add(user)
@@ -60,10 +73,11 @@ def register():
 
 
 @app.route("/addUser", methods=("POST", "GET"))
+@login_required
 def addUser():
     if request.method == "POST":
         username = request.form['username']
-        password = bcrypt.generate_password_hash(request.form['password'])
+        password = generate_password_hash(request.form['password'])
         usertype = request.form['userType']
         user = usersList(userName=username,
                          password=password, userType=usertype)
@@ -81,6 +95,7 @@ def addUser():
 
 
 @app.route("/deleteUser/<int:id>")
+@login_required
 def deleteUser(id):
     user = usersList.query.get_or_404(id)
     db.session.delete(user)
@@ -89,6 +104,7 @@ def deleteUser(id):
 
 
 @app.route("/updateUser/<int:id>", methods=['POST', 'GET'])
+@login_required
 def updateUser(id):
     user = usersList.query.get_or_404(id)
 
@@ -105,12 +121,14 @@ def updateUser(id):
 
 
 @app.route("/users")
+@login_required
 def users():
     users = usersList.query.all()
     return render_template("allUsers.html", users=users)
 
 
 @app.route("/addSubject", methods=("POST", "GET"))
+@login_required
 def addSubject():
     if request.method == "POST":
         subject = request.form['subject']
@@ -129,6 +147,7 @@ def addSubject():
 
 
 @app.route("/updateSubject/<int:id>", methods=['POST', 'GET'])
+@login_required
 def updateSubject(id):
     subject = Subjects.query.get_or_404(id)
 
@@ -144,12 +163,14 @@ def updateSubject(id):
 
 
 @app.route("/subjects")
+@login_required
 def subjects():
     subjects = Subjects.query.all()
     return render_template("allSubjects.html", subjects=subjects)
 
 
 @app.route("/deleteSubject/<int:id>")
+@login_required
 def deleteSubject(id):
     subject = Subjects.query.get_or_404(id)
     db.session.delete(subject)
@@ -158,6 +179,7 @@ def deleteSubject(id):
 
 
 @app.route("/addBook", methods=("POST", "GET"))
+@login_required
 def addBook():
     if request.method == "POST":
         accNumber = request.form['accNumber']
@@ -184,6 +206,7 @@ def addBook():
 
 
 @app.route("/deleteBook/<int:accNumber>")
+@login_required
 def deleteBook(accNumber):
     book = bookMaster.query.get_or_404(accNumber)
     db.session.delete(book)
@@ -192,6 +215,7 @@ def deleteBook(accNumber):
 
 
 @app.route("/updateBook/<int:accNumber>", methods=['POST', 'GET'])
+@login_required
 def updateBook(accNumber):
     book = bookMaster.query.get_or_404(accNumber)
     subjects = Subjects.query.all()
@@ -216,36 +240,19 @@ def updateBook(accNumber):
 
 
 @app.route("/books")
+@login_required
 def books():
     books = bookMaster.query.all()
     return render_template("allBooks.html", books=books)
 
 
 @app.route("/booksBySubject/<int:id>")
+@login_required
 def booksBySubject(id):
     # query the database for all books that have the specified subject ID.
     books = bookMaster.query.filter_by(SubID=id)
     return render_template('booksBySubject.html', books=books)
 
-
-# def get_or_create(session, model, **kwargs):
-#     instance = session.query(model).filter_by(**kwargs)
-#     if instance is None:
-#         instance = model(**kwargs)
-#         session.add(instance)
-#         session.commit()
-#     return instance
-
-
-# @app.route('/setBookSubject/<int:accNumber>')
-# def setBookSubject(accNumber):
-#     book = bookMaster.query.get_or_404(accNumber)
-#     subName = request.form['subName']
-#     subject = get_or_create(db.session, Subjects, subName=subName)
-#     book.SubID = subject.subID
-#     db.session.add(book)
-#     db.session.commit()
-#     return redirect(url_for('books'))
 
 if __name__ == "__main__":
     app.run(debug=True)
