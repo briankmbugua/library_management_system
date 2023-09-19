@@ -62,9 +62,12 @@ def register():
     if request.method == "POST":
         username = request.form['username']
         password = generate_password_hash(request.form['password'])
+        library_name = request.form['library']
+        library = Library(name=library_name)
         user = usersList(userName=username,
-                         password=password)
+                         password=password, userType="admin", library=library)
         db.session.add(user)
+        db.session.add(library)
         db.session.commit()
         flash("Account created succesfully", "succes")
         return redirect(url_for("login"))
@@ -72,15 +75,18 @@ def register():
         return render_template("register.html")
 
 
+# for the librarian to add users to their specific library
 @app.route("/addUser", methods=("POST", "GET"))
 @login_required
 def addUser():
     if request.method == "POST":
         username = request.form['username']
-        password = generate_password_hash(request.form['password'])
         usertype = request.form['userType']
+
+        # get the currently logged in librarian
+        current_library = current_user.library
         user = usersList(userName=username,
-                         password=password, userType=usertype)
+                         userType=usertype, library=current_library)
         db.session.add(user)
         db.session.commit()
         if user.userID:
@@ -97,8 +103,9 @@ def addUser():
 @app.route("/deleteUser/<int:id>")
 @login_required
 def deleteUser(id):
-    user = usersList.query.get_or_404(id)
-    db.session.delete(user)
+    user_to_delete = usersList.query.filter_by(
+        library=current_user.library, id=id).first_or_404()
+    db.session.delete(user_to_delete)
     db.session.commit()
     return redirect(url_for('index'))
 
@@ -106,24 +113,26 @@ def deleteUser(id):
 @app.route("/updateUser/<int:id>", methods=['POST', 'GET'])
 @login_required
 def updateUser(id):
-    user = usersList.query.get_or_404(id)
+    user_to_update = usersList.query.filter_by(
+        library=current_user.library, id=id).first_or_404()
 
-    if request.method == 'POST':
-        user.userName = request.form['name']
-        user.userType = request.form['usertype']
-        try:
-            db.session.commit()
-            return redirect(url_for('index'))
-        except:
-            return 'There was an issue updating the user'
+    if user_to_update.library == current_user.library:
+        if request.method == 'POST':
+            user_to_update.userName = request.form['name']
+            user_to_update.userType = request.form['usertype']
+            try:
+                db.session.commit()
+                return redirect(url_for('index'))
+            except:
+                return 'There was an issue updating the user'
     else:
-        return render_template('updateUser.html', user=user)
+        return render_template('updateUser.html', user=user_to_update)
 
 
 @app.route("/users")
 @login_required
 def users():
-    users = usersList.query.all()
+    users = usersList.query.filter_by(library=current_user.library).all()
     return render_template("allUsers.html", users=users)
 
 
@@ -132,8 +141,8 @@ def users():
 def addSubject():
     if request.method == "POST":
         subject = request.form['subject']
-
-        subject = Subjects(subName=subject)
+        library = current_user.library
+        subject = Subjects(subName=subject, library=library)
         db.session.add(subject)
         db.session.commit()
         if subject.subID:
@@ -149,7 +158,8 @@ def addSubject():
 @app.route("/updateSubject/<int:id>", methods=['POST', 'GET'])
 @login_required
 def updateSubject(id):
-    subject = Subjects.query.get_or_404(id)
+    subject = Subjects.query.filter_by(
+        id=id, library=current_user.library).first_or_404()
 
     if request.method == 'POST':
         subject.subName = request.form['subname']
@@ -165,7 +175,7 @@ def updateSubject(id):
 @app.route("/subjects")
 @login_required
 def subjects():
-    subjects = Subjects.query.all()
+    subjects = Subjects.query.filter_by(library=current_user.library).all()
     return render_template("allSubjects.html", subjects=subjects)
 
 
@@ -190,7 +200,7 @@ def addBook():
         price = request.form['price']
         status = request.form['status']
         book = bookMaster(accNumber=accNumber, bookTitle=booktitle, authorName=authorname,
-                          PublisherName=publishername, pages=pages, price=price, status=status)
+                          PublisherName=publishername, pages=pages, price=price, status=status, library=current_user.library)
         db.session.add(book)
         db.session.commit()
         if book.accNumber:
@@ -208,7 +218,8 @@ def addBook():
 @app.route("/deleteBook/<int:accNumber>")
 @login_required
 def deleteBook(accNumber):
-    book = bookMaster.query.get_or_404(accNumber)
+    book = bookMaster.query.filter_by(
+        accNumber=accNumber, library=current_user.library).first_or_404()
     db.session.delete(book)
     db.session.commit()
     return redirect(url_for('index'))
@@ -217,8 +228,9 @@ def deleteBook(accNumber):
 @app.route("/updateBook/<int:accNumber>", methods=['POST', 'GET'])
 @login_required
 def updateBook(accNumber):
-    book = bookMaster.query.get_or_404(accNumber)
-    subjects = Subjects.query.all()
+    book = bookMaster.query.filter_by(
+        accNumber=accNumber, library=current_user.library).first_or_404()
+    subjects = Subjects.query.filter_by(library=current_user.library).all()
 
     if request.method == 'POST':
         book.accNumber = request.form['accNumber']
@@ -229,7 +241,8 @@ def updateBook(accNumber):
         book.price = request.form['price']
         book.status = request.form['status']
         subname = request.form['subname']
-        subject = Subjects.query.filter_by(subName=subname).first()
+        subject = Subjects.query.filter_by(
+            subName=subname, library=current_user.library).first()
         book.SubID = subject.subID
         db.session.commit()
         return redirect(url_for('index'))
@@ -242,7 +255,7 @@ def updateBook(accNumber):
 @app.route("/books")
 @login_required
 def books():
-    books = bookMaster.query.all()
+    books = bookMaster.query.filter_by(library=current_user.library).all()
     return render_template("allBooks.html", books=books)
 
 
@@ -250,7 +263,7 @@ def books():
 @login_required
 def booksBySubject(id):
     # query the database for all books that have the specified subject ID.
-    books = bookMaster.query.filter_by(SubID=id)
+    books = bookMaster.query.filter_by(SubID=id, library=current_user.library)
     return render_template('booksBySubject.html', books=books)
 
 
