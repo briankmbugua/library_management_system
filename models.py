@@ -16,6 +16,9 @@ class usersList(db.Model, UserMixin):
     password = db.Column(db.String(256), nullable=False)
     userType = db.Column(db.String(50), nullable=True)
 
+    def get_id(self):
+        return str(self.userID)
+
 
 class bookMaster(db.Model):
     __tablename__ = "bookMaster"
